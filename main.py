@@ -44,16 +44,16 @@ class Game:
             'grass': self.gm
         }
 
-        # Initialise Player
-        self.PLAYER = Player(0, 0, self.DISPLAY, self.CAMERA, self.PLUGINS)
-
-        # Initialise World
-        self.WORLD = World(self.DISPLAY, self.CAMERA, self.PLAYER, self.ASSET_MANAGER, self.PLUGINS, tile_size=64)
-
         # Socket client
         self.client_socket = socket.socket()
         self.client_thread = threading.Thread(target=self.client_program)
         self.client_thread.start()
+
+        # Initialise Player
+        self.PLAYER = Player(0, 0, self.DISPLAY, self.CAMERA, self.PLUGINS, self.client_socket)
+
+        # Initialise World
+        self.WORLD = World(self.DISPLAY, self.CAMERA, self.PLAYER, self.ASSET_MANAGER, self.PLUGINS, tile_size=64)
 
     def resize(self, event):
         self.player.resize(self.DISPLAY)
@@ -73,7 +73,12 @@ class Game:
             data = self.client_socket.recv(1024).decode()
             if not data:
                 break
-            print('Received from server: ' + data)
+            
+            string = data
+            array = string.split(':')
+
+            if array[0] == '0':
+                print('Given ID:', array[1])
 
         print('Connection closed.')
 

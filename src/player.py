@@ -4,11 +4,12 @@ import pygame
 SQRT_2 = math.sqrt(2)
 
 class Player:
-    def __init__(self, x, y, display, camera, plugins):
+    def __init__(self, x, y, display, camera, plugins, socket):
         self.width = 10
         self.height = 10
         self.display = display
         self.camera = camera
+        self.socket = socket
         
         self.x = x
         self.y = y
@@ -53,6 +54,7 @@ class Player:
         # Handle key presses
         for key in (k for k in self.key_directions if keys[k]):
             direction, vx, vy = self.key_directions[key]
+
             self.direction = direction
             velocity_x += vx
             velocity_y += vy
@@ -64,6 +66,9 @@ class Player:
 
         new_character_x += velocity_x*dt 
         new_character_y += velocity_y*dt
+
+        if self.x != new_character_x or self.y != new_character_y:
+            self.socket.send(f'1:{new_character_x}:{new_character_y}'.encode())
 
         return new_character_x, new_character_y
 

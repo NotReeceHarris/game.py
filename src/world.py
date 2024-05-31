@@ -10,7 +10,7 @@ CHUNK_SIZE_X = 16
 CHUNK_DUMP_D = 5
 
 # Settings
-USE_DYNAMIC_GRASS = True
+USE_DYNAMIC_GRASS = False
 
 class World:
     def __init__(self, display, camera, player, tilesets, plugins, tile_size):
@@ -39,6 +39,7 @@ class World:
 
         self.t = 0
         self.offsets = {(0, 0)}
+        self.get_visible_chunks()
 
     def resize(self, display):
         self.w, self.h = pygame.display.get_surface().get_size()
@@ -48,6 +49,18 @@ class World:
         self.CHUNKS_Y = math.ceil(self.SPACE_Y / (CHUNK_SIZE_X * self.tile_size))
         self.get_visible_chunks()
         self.display = display
+        return
+
+    def get_visible_chunks(self):
+        self.offsets = {(0, 0)}
+
+        for x in range(0, self.CHUNKS_X + 1):
+            for y in range(0, self.CHUNKS_Y + 1):
+                self.offsets.add((x, y))    # Bottom right
+                self.offsets.add((-x, y))   # Bottom left
+                self.offsets.add((x, -y))   # Top right
+                self.offsets.add((-x, -y))  # Top left
+        
         return
     
     def generate_chunks(self, chunk_x, chunk_y):
@@ -150,15 +163,19 @@ class World:
                         grass_level = grassMap(tile_x, tile_y)
 
                         if grass_level <= -0.25:
-                            self.plugins['grass'].place_tile((tile_x, tile_y), random.randint(15, 25), [0, 1, 2, 3, 4, 5])
+                            self.plugins['grass'].place_tile((tile_x, tile_y), random.randint(15, 20), [0, 1, 2, 3, 4, 5])
+                        elif grass_level <= -0.20:
+                            self.plugins['grass'].place_tile((tile_x, tile_y), random.randint(10, 15), [0, 1, 2, 3, 4, 5])
                         elif grass_level <= -0.18:
                             self.plugins['grass'].place_tile((tile_x, tile_y), random.randint(5, 10), [0, 1, 2, 3, 4, 5])
                         elif grass_level <= -0.1:
-                            self.plugins['grass'].place_tile((tile_x, tile_y), random.randint(1, 5), [0, 1, 2, 3, 4, 5])
+                            self.plugins['grass'].place_tile((tile_x, tile_y), random.randint(2, 5), [0, 1, 2, 3, 4, 5])
+                        elif grass_level <= -0.05:
+                            self.plugins['grass'].place_tile((tile_x, tile_y), random.randint(1, 2), [0, 1, 2, 3, 4, 5])
 
                         tile0 = tile1 = tile2 = tile3 = tile4 = tile5 = tile6 = self.tilesets.get('grass')
                     else:
-                        tile0 = tile1 = tile2 = tile3 = tile4 = tile5 = tile6 = random.choice(self.tilesets_grass)
+                        tile0 = tile1 = tile2 = tile3 = tile4 = tile5 = tile6 = self.tilesets.get('grass')
 
                 tiles[0].append((tile0, (rect.x, rect.y)))
                 tiles[1].append((tile1, (rect.x, rect.y)))
@@ -177,7 +194,6 @@ class World:
         chunks[6].blits(tiles[6])
 
         return chunks
-
 
     def update(self, dt, anim_frame):
         CURRENT_CHUNK_X = math.floor(self.player.x / (CHUNK_SIZE_X * self.tile_size))
